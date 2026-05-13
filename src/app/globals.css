@@ -12,4 +12,13 @@ body {
   background: #FFF7ED;
   color: #1c1917;
   font-family: 'Ownglyph', 'Apple SD Gothic Neo', 'Noto Sans KR', Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }

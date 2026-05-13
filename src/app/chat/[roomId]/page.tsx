@@ -141,7 +141,7 @@ export default function ChatRoomPage() {
   const product = room.products
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col" style={{ height: 'calc(100vh - 4rem)' }}>
+    <div className="max-w-2xl mx-auto flex flex-col h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-7rem)]">
       {/* 헤더 */}
       <div className="bg-white rounded-t-2xl border-b border-gray-100 px-4 py-3 flex items-center gap-3 shrink-0">
         <button onClick={() => router.back()} className="text-gray-400 hover:text-orange-500 text-lg">←</button>

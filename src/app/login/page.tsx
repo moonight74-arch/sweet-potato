@@ -39,7 +39,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh]">
-      <div className="bg-white rounded-2xl shadow-sm p-8 w-full max-w-sm">
+      <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 w-full max-w-sm">
         {/* 로고 */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">🍠</div>

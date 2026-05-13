@@ -67,7 +67,7 @@ export default function SignupPage() {
 
   if (done) return (
     <div className="flex flex-col items-center justify-center min-h-[70vh]">
-      <div className="bg-white rounded-2xl shadow-sm p-8 w-full max-w-sm text-center">
+      <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 w-full max-w-sm text-center">
         <div className="text-5xl mb-4">📬</div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">이메일을 확인해주세요</h2>
         <p className="text-sm text-gray-500 mb-6">
@@ -83,7 +83,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh]">
-      <div className="bg-white rounded-2xl shadow-sm p-8 w-full max-w-sm">
+      <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 w-full max-w-sm">
         {/* 로고 */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">🍠</div>
