@@ -1,24 +1,40 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
-  const supabase = createClient()
+  const [form, setForm] = useState({ email: '', password: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  async function signInWithKakao() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'kakao',
-      options: { redirectTo: `${location.origin}/auth/callback` },
-    })
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    setError('')
   }
 
-  async function signInWithGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${location.origin}/auth/callback` },
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (!form.email || !form.password) { setError('이메일과 비밀번호를 입력해주세요.'); return }
+
+    setLoading(true)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithPassword({
+      email: form.email,
+      password: form.password,
     })
+    setLoading(false)
+
+    if (error) {
+      setError('이메일 또는 비밀번호가 올바르지 않습니다.')
+      return
+    }
+
+    router.push('/')
+    router.refresh()
   }
 
   return (
@@ -31,40 +47,53 @@ export default function LoginPage() {
           <p className="text-sm text-gray-400 mt-1">따뜻한 중고거래 플랫폼</p>
         </div>
 
-        {/* 소셜 로그인 */}
-        <div className="space-y-3">
-          {/* 카카오 */}
-          <button
-            onClick={signInWithKakao}
-            className="w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-opacity hover:opacity-90"
-            style={{ backgroundColor: '#FEE500', color: '#000000' }}
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M9 1.5C4.86 1.5 1.5 4.14 1.5 7.38c0 2.1 1.38 3.93 3.45 4.98L4.2 15l3.51-2.31c.42.06.84.09 1.29.09 4.14 0 7.5-2.64 7.5-5.88S13.14 1.5 9 1.5z" fill="#000000"/>
-            </svg>
-            카카오로 시작하기
-          </button>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+            <input
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="example@email.com"
+              autoComplete="email"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400"
+            />
+          </div>
 
-          {/* 구글 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">비밀번호</label>
+            <input
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="비밀번호 입력"
+              autoComplete="current-password"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400"
+            />
+          </div>
+
+          {error && (
+            <p className="text-sm text-red-500 bg-red-50 px-4 py-2.5 rounded-xl">{error}</p>
+          )}
+
           <button
-            onClick={signInWithGoogle}
-            className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 font-medium text-sm text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold text-sm hover:bg-orange-600 transition-colors disabled:opacity-50"
           >
-            <svg width="18" height="18" viewBox="0 0 18 18">
-              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-              <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-              <path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/>
-              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-            </svg>
-            구글로 시작하기
+            {loading ? '로그인 중...' : '로그인'}
           </button>
+        </form>
+
+        <div className="mt-6 text-center text-sm text-gray-400">
+          아직 계정이 없으신가요?{' '}
+          <Link href="/signup" className="text-orange-500 font-medium hover:underline">
+            회원가입
+          </Link>
         </div>
 
-        <p className="text-xs text-center text-gray-400 mt-6">
-          로그인 시 <span className="underline">이용약관</span> 및 <span className="underline">개인정보처리방침</span>에 동의합니다.
-        </p>
-
-        {/* 돌아가기 */}
         <button
           onClick={() => router.back()}
           className="mt-4 w-full text-sm text-center text-gray-400 hover:text-orange-500 transition-colors"

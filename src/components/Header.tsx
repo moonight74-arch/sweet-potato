@@ -1,14 +1,49 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+
+interface Profile {
+  nickname: string
+  avatar_url: string | null
+}
 
 export default function Header() {
   const router = useRouter()
   const [search, setSearch] = useState('')
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [authLoaded, setAuthLoaded] = useState(false)
 
-  function handleSearch(e: React.FormEvent) {
+  useEffect(() => {
+    const supabase = createClient()
+
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data } = await supabase.from('profiles').select('nickname, avatar_url').eq('id', user.id).single()
+        setProfile(data as Profile)
+      }
+      setAuthLoaded(true)
+    }
+
+    loadUser()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setProfile(null)
+      } else {
+        supabase.from('profiles').select('nickname, avatar_url').eq('id', session.user.id).single()
+          .then(({ data }) => setProfile(data as Profile))
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  function handleSearch(e: { preventDefault(): void }) {
     e.preventDefault()
     if (search.trim()) {
       router.push(`/?q=${encodeURIComponent(search.trim())}`)
@@ -42,13 +77,35 @@ export default function Header() {
           + 판매하기
         </Link>
 
-        {/* 로그인 */}
-        <Link
-          href="/login"
-          className="shrink-0 text-sm text-gray-500 hover:text-orange-500 transition-colors"
-        >
-          로그인
-        </Link>
+        {/* 로그인 상태 */}
+        {authLoaded && (
+          profile ? (
+            <>
+              <Link href="/chat" className="shrink-0 text-gray-400 hover:text-orange-500 transition-colors" title="채팅">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </Link>
+              <Link href="/mypage" className="shrink-0 flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 font-bold text-sm overflow-hidden">
+                  {profile.avatar_url ? (
+                    <Image src={profile.avatar_url} alt="프로필" width={32} height={32} className="object-cover rounded-full" />
+                  ) : (
+                    profile.nickname?.[0] ?? '?'
+                  )}
+                </div>
+                <span className="hidden sm:inline text-sm text-gray-700">{profile.nickname}</span>
+              </Link>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="shrink-0 text-sm text-gray-500 hover:text-orange-500 transition-colors"
+            >
+              로그인
+            </Link>
+          )
+        )}
       </div>
     </header>
   )
